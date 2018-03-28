@@ -43,33 +43,44 @@ class ClientHandler extends ParseMessage implements Runnable {
             boolean quit = false;
 
             while (!quit) {
-                // úvodní výběr z metod
-                
-                //TODO
-                write("JedenSvet DB input schema: 1/E/text; insert, please...\n");
-                
+
+                // pro zjednodušení předpokládáme, že druhá strana zná schéma, které má poslat
+                // 1-insert:  1/jménoFilmu/rok/režisér/popis
+                // 2-select:  2/čísloSloupce/hodnota
+                // 3-update:  3/idFilmu/čísloSloupce/hodnota
+                // pořadí sloupců: idFilmu, jmenoFilmu, rok, reziser, popis
+                write("Aplikace JedenSvet_DB:  vložte svůj příkaz...\n");
+
                 choice = read("", "\n");
 
-                String [] parsed = choice.split("/");
-                
-                //TODO
-                if ("1".equals(parsed[0]) && ("E".equals(parsed[1]) || "D".equals(parsed[1])) ) {
-                    // spustí query do DB
-                    DBController dBController = new DBController();
-                        if ("E".equals(parsed[1])) {
-                            String code = "Encrypted code is: " + enigma.encrypt() +"\n";
-                            write(code);
-                        }    
-                        if ("D".equals(parsed[1])) { 
-                            String code = "Decrypted code is: " + enigma.decrypt() +"\n";
-                            write(code);
-                        }    
-                } else {
-                    write("Invalid choice ...\n");
+                String[] parsed = choice.split("/");
+
+                String[] filmData = {"", "", "", "", ""};
+                String response;
+
+                DBController dBController = new DBController();
+                switch (parsed[0]) {
+                    case "1":
+                        dBController.doInsertToFilm(parsed[1], parsed[2], parsed[3], parsed[4]);
+                        response = "Vloženo.";
+                        break;
+                    case "2":
+                        filmData[Integer.parseInt(parsed[1]) - 1] = parsed[2];
+                        response = dBController.doSelectFromFilm(filmData[1], filmData[2], filmData[3], filmData[4]);
+                        break;
+                    case "3":
+                        filmData[Integer.parseInt(parsed[2]) - 1] = parsed[3];
+                        dBController.doUpdateToFilm(parsed[1], filmData[1], filmData[2], filmData[3], filmData[4]);
+                        response = "Upraveno.";
+                        break;
+                    default:
+                        response = "Chybné zadání.";
                 }
-                write ("Once again? (E for end): \n");
+                write(response + "\n");
+
+                write("Once again? (E for end): \n");
                 choice = read("", "\n");
-                
+
                 if ('E' == choice.charAt(0)) {
                     quit = true;
                 }

@@ -13,5 +13,5 @@ public interface IDBController {
     
     public void doInsertToFilm(String jmenoFilmu, String rok, String reziser, String popis);
     public String doSelectFromFilm(String jmenoFilmu, String rok, String reziser, String popis);
-    public void doUpdateToFilm(String jmenoFilmu, String rok, String reziser, String popis);
+    public void doUpdateToFilm(String idFilmu, String jmenoFilmu, String rok, String reziser, String popis);
 }
