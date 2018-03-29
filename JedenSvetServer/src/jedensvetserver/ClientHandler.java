@@ -41,6 +41,18 @@ class ClientHandler extends ParseMessage implements Runnable {
         try {
             String choice;
             boolean quit = false;
+            
+            // záklaní ověření přístupu - přihl. jméno má být "root" a heslo "1111"
+            write("Aplikace JedenSvet_DB:  zadejte své jméno/heslo...\n");
+            choice = read("", "\n");
+            choice = choice.trim();
+            
+            if (choice.equals("root/1111")) {
+                write("Ověření OK...");
+            } else {
+                write("Nepovolený vstup...");
+                quit = true;
+            }
 
             while (!quit) {
 
@@ -49,9 +61,10 @@ class ClientHandler extends ParseMessage implements Runnable {
                 // 2-select:  2/čísloSloupce/hodnota
                 // 3-update:  3/idFilmu/čísloSloupce/hodnota
                 // pořadí sloupců: idFilmu, jmenoFilmu, rok, reziser, popis
-                write("Aplikace JedenSvet_DB:  vložte svůj příkaz...\n");
+                write("Vložte svůj příkaz...\n");
 
                 choice = read("", "\n");
+                choice = choice.trim();
 
                 String[] parsed = choice.split("/");
 
