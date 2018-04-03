@@ -31,7 +31,7 @@ public class JedenSvetServer {
 
     public static void main(String[] args) {
         try {
-            new JedenSvetServer(args.length > 0 ? Integer.parseInt(args[0]) : 8081);
+            new JedenSvetServer(args.length > 0 ? Integer.parseInt(args[0]) : 8082);
         } catch (Exception ex) {
             Logger.getLogger(JedenSvetServer.class.getName()).log(Level.SEVERE, null, ex);
             //ex.printStackTrace(); 

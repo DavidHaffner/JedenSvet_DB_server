@@ -18,6 +18,7 @@ class ClientHandler extends ParseMessage implements Runnable {
 
     Socket sock;
     int id;
+    DBController dBController = new DBController();
 
     ClientHandler(Socket iSocket, int iID) throws IOException {
         sock = iSocket;
@@ -38,22 +39,33 @@ class ClientHandler extends ParseMessage implements Runnable {
     @Override
     public void run() {
 
+        String choice; // zde se bude ukládat příchozí komunikace od Clienta
+        boolean quit = false; // pomocná prom. pro plnění podmínek v cyklech
+        String response; // zde bude výsledek selectu z DB
+            
         try {
-            String choice;
-            boolean quit = false;
-            
-            // záklaní ověření přístupu - přihl. jméno má být "root" a heslo "1111"
-            write("Aplikace JedenSvet_DB:  zadejte své jméno/heslo...\n");
-            choice = read("", "\n");
-            choice = choice.trim();
-            
-            if (choice.equals("root/1111")) {
-                write("Ověření OK...");
-            } else {
-                write("Nepovolený vstup...");
-                quit = true;
-            }
+            while (!quit) {
+                // ověření přístupu do DB -> z tabulky 'pristupy'
+                write("Aplikace JedenSvet_DB:  zadejte své jméno/heslo...\n");
+                choice = read("", "\n");
+                choice = choice.trim();
+                
+                String[] parsed = choice.split("/");
+                response = dBController.doSelectFromPristupy(parsed[0]);
 
+                if (response.equals(parsed[1])) {
+                    write("Ověření OK...\n");
+                    quit = true;
+                } else {
+                    write("Nepovolený vstup...\n");
+                }
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler - signing in.", ex);
+        }
+
+        try {
+            quit = false;
             while (!quit) {
 
                 // pro zjednodušení předpokládáme, že druhá strana zná schéma, které má poslat
@@ -69,13 +81,12 @@ class ClientHandler extends ParseMessage implements Runnable {
                 String[] parsed = choice.split("/");
 
                 String[] filmData = {"", "", "", "", ""};
-                String response;
+                int radku;
 
-                DBController dBController = new DBController();
                 switch (parsed[0]) {
                     case "1":
-                        dBController.doInsertToFilm(parsed[1], parsed[2], parsed[3], parsed[4]);
-                        response = "Vloženo.";
+                        radku = dBController.doInsertToFilm(parsed[1], parsed[2], parsed[3], parsed[4]);
+                        response = "Vloženo řádků: " + Integer.toString(radku);
                         break;
                     case "2":
                         filmData[Integer.parseInt(parsed[1]) - 1] = parsed[2];
@@ -83,25 +94,25 @@ class ClientHandler extends ParseMessage implements Runnable {
                         break;
                     case "3":
                         filmData[Integer.parseInt(parsed[2]) - 1] = parsed[3];
-                        dBController.doUpdateToFilm(parsed[1], filmData[1], filmData[2], filmData[3], filmData[4]);
-                        response = "Upraveno.";
+                        radku = dBController.doUpdateToFilm(parsed[1], filmData[1], filmData[2], filmData[3], filmData[4]);
+                        response = "Upraveno řádků: " + Integer.toString(radku);
                         break;
                     default:
-                        response = "Chybné zadání.";
+                        response = "Chybné zadání - opakujte.";
                 }
                 write(response + "\n");
 
-                write("Once again? (E for end): \n");
+                write("Pokračovat? (K pro konec): \n");
                 choice = read("", "\n");
 
-                if ('E' == choice.charAt(0)) {
+                if ('K' == choice.charAt(0)) {
                     quit = true;
                 }
             }
             sock.shutdownOutput();
             sock.close();
         } catch (Exception ex) {
-            Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler running.", ex);
+            Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler - application running.", ex);
         }
     }
 }
