@@ -14,6 +14,8 @@ import java.sql.*;
 public class DBController implements IDBController {
 
     public final String DB_PATH = "jdbc:mysql://localhost:3306/jeden_svet?user=root&password=chelsea";
+    MyLogger myLogger = new MyLogger();
+    
 
     @Override
     public int doInsertToFilm(String jmenoFilmu, String rok, String reziser, String popis) {
@@ -29,7 +31,9 @@ public class DBController implements IDBController {
             radku = dotaz.executeUpdate();
             System.out.printf("Do DB uloženo %d řádků.\n", radku);
         } catch (SQLException ex) {
-            System.out.println("Chyba při komunikaci s databází - insert.");
+            myLogger.saveLog(DBController.class.getName(), "Chyba při komunikaci s databází - insert.\n"
+                    + "zadáno: " + jmenoFilmu + " " + rok + " " + reziser + " " + popis, ex);
+            //System.out.println("Chyba při komunikaci s databází - insert.");
         }
 
         return radku;
@@ -83,7 +87,9 @@ public class DBController implements IDBController {
             }
 
         } catch (SQLException ex) {
-            System.out.println("Chyba při komunikaci s databází - select.");
+            myLogger.saveLog(DBController.class.getName(), "Chyba při komunikaci s databází - select.\n"
+                    + "zadáno: " + jmenoFilmu + " " + rok + " " + reziser + " " + popis, ex);
+            //System.out.println("Chyba při komunikaci s databází - select.");
         }
 
         return selectResult;
@@ -140,7 +146,9 @@ public class DBController implements IDBController {
             System.out.printf("V DB přepsáno řádků: %d.\n", radku);
 
         } catch (SQLException ex) {
-            System.out.println("Chyba při komunikaci s databází - update.");
+            myLogger.saveLog(DBController.class.getName(), "Chyba při komunikaci s databází - update.\n"
+                    + "zadáno: " + idFilmu + " " + jmenoFilmu + " " + rok + " " + reziser + " " + popis, ex);
+            //System.out.println("Chyba při komunikaci s databází - update.");
         }
         
         return radku;
@@ -162,7 +170,9 @@ public class DBController implements IDBController {
             selectResult = vysledky.getString("heslo");
 
         } catch (SQLException ex) {
-            System.out.println("Chyba při komunikaci s databází - select na přístup.");
+            myLogger.saveLog(DBController.class.getName(), "Chyba při komunikaci s databází - ověření přístupu.\n"
+                    + "zadáno přístupové jméno: " + jmeno, ex);
+            //System.out.println("Chyba při komunikaci s databází - select na přístup.");
         }
 
         return selectResult;

@@ -7,8 +7,6 @@ package jedensvetserver;
 
 import java.net.Socket;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -19,6 +17,8 @@ class ClientHandler extends ParseMessage implements Runnable {
     Socket sock;
     int id;
     DBController dBController = new DBController();
+    MyLogger myLogger = new MyLogger();
+    
 
     ClientHandler(Socket iSocket, int iID) throws IOException {
         sock = iSocket;
@@ -61,7 +61,8 @@ class ClientHandler extends ParseMessage implements Runnable {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler - signing in.", ex);
+            myLogger.saveLog(ClientHandler.class.getName(), "Chyba v ClientHandleru - při přihlašování.", ex);
+            //Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler - signing in.", ex);
         }
 
         try {
@@ -85,20 +86,36 @@ class ClientHandler extends ParseMessage implements Runnable {
 
                 switch (parsed[0]) {
                     case "1":
+                        if (! (parsed.length == 5)) {
+                            response = "Chybné zadání.";
+                            break;
+                        }
                         radku = dBController.doInsertToFilm(parsed[1], parsed[2], parsed[3], parsed[4]);
                         response = "Vloženo řádků: " + Integer.toString(radku);
                         break;
                     case "2":
+                        if (! (parsed.length == 3)) {
+                            response = "Chybné zadání.";
+                            break;
+                        }
                         filmData[Integer.parseInt(parsed[1]) - 1] = parsed[2];
                         response = dBController.doSelectFromFilm(filmData[1], filmData[2], filmData[3], filmData[4]);
+                        // hláška při nenalezení záznamu
+                        if ("".equals(response)) {
+                            response += "Nenalezeno.";
+                        }
                         break;
                     case "3":
+                        if (! (parsed.length == 4)) {
+                            response = "Chybné zadání.";
+                            break;
+                        }
                         filmData[Integer.parseInt(parsed[2]) - 1] = parsed[3];
                         radku = dBController.doUpdateToFilm(parsed[1], filmData[1], filmData[2], filmData[3], filmData[4]);
                         response = "Upraveno řádků: " + Integer.toString(radku);
                         break;
                     default:
-                        response = "Chybné zadání - opakujte.";
+                        response = "Chybné zadání.";
                 }
                 write(response + "\n");
 
@@ -108,11 +125,12 @@ class ClientHandler extends ParseMessage implements Runnable {
                 if ('K' == choice.charAt(0)) {
                     quit = true;
                 }
-            }
+            } 
             sock.shutdownOutput();
             sock.close();
         } catch (Exception ex) {
-            Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler - application running.", ex);
+            myLogger.saveLog(ClientHandler.class.getName(), "Chyba v ClientHandleru - při běhu aplikace.", ex);
+            //Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "Error in ClientHandler - application running.", ex);
         }
     }
 }

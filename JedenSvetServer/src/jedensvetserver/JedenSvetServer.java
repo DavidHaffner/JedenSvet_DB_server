@@ -7,8 +7,6 @@ package jedensvetserver;
 
 import java.net.ServerSocket;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -16,6 +14,9 @@ import java.util.logging.Logger;
  */
 public class JedenSvetServer {
 
+    static MyLogger myLogger = new MyLogger();
+    
+    
     public JedenSvetServer(int port) throws IOException {
         int count = 0;
         ServerSocket servsock = new ServerSocket(port);
@@ -23,18 +24,19 @@ public class JedenSvetServer {
             try {
                 new ClientHandler(servsock.accept(), count++).start();
             } catch (IOException ex) {
-                Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "IO error in new client", ex);
-                //System.out.println("IO error in new client");
+                myLogger.saveLog(ClientHandler.class.getName(), "IO chyba při vytváření nového spojení.", ex);
+                //Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, "IO error in new client", ex);
+                
             }
         }
-    } // Server()
+    } 
 
     public static void main(String[] args) {
         try {
             new JedenSvetServer(args.length > 0 ? Integer.parseInt(args[0]) : 8082);
         } catch (Exception ex) {
-            Logger.getLogger(JedenSvetServer.class.getName()).log(Level.SEVERE, null, ex);
-            //ex.printStackTrace(); 
+            myLogger.saveLog(JedenSvetServer.class.getName(), "Chyba při spuštění main", ex);
+            //Logger.getLogger(JedenSvetServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
